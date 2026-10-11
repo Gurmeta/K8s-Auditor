@@ -39,7 +39,7 @@ export function lint(text: string, rules: Rule[] = allRules): LintResult {
   const tooLarge = checkInputSize(text)
   if (tooLarge) return { findings: [], errors: [], resources: [], tooLarge }
 
-  const { resources, errors } = parseManifests(text)
+  const { resources, errors } = parseManifests(text, { expand: true })
   return {
     tooLarge: null,
     findings: rules.flatMap((rule) => runRule(rule, resources)),
