@@ -1,0 +1,149 @@
+@import 'tailwindcss';
+
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --c-ink: #f5f6f8;
+  --c-panel: #ffffff;
+  --c-raised: #eceff3;
+  --c-line: #d8dce3;
+  --c-text: #14181f;
+  --c-dim: #566070;
+  --c-k8s: #2f5fd0;
+  --c-crit: #c0283b;
+  --c-warn: #8a5600;
+  --c-info: #0b6e99;
+  --c-ok: #167a4f;
+  --c-str: #1f7a4d;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --c-ink: #1c212b;
+  --c-panel: #242a36;
+  --c-raised: #2e3543;
+  --c-line: #3d4657;
+  --c-text: #e8ecf3;
+  --c-dim: #a6b0c2;
+  --c-k8s: #7aa2f7;
+  --c-crit: #ff7a89;
+  --c-warn: #f2bd55;
+  --c-info: #6bc9ec;
+  --c-ok: #62dba3;
+  --c-str: #a6dcba;
+}
+
+@theme inline {
+  --color-ink: var(--c-ink);
+  --color-panel: var(--c-panel);
+  --color-raised: var(--c-raised);
+  --color-line: var(--c-line);
+  --color-text: var(--c-text);
+  --color-dim: var(--c-dim);
+  --color-k8s: var(--c-k8s);
+  --color-crit: var(--c-crit);
+  --color-warn: var(--c-warn);
+  --color-info: var(--c-info);
+  --color-ok: var(--c-ok);
+  --color-str: var(--c-str);
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-panel px-3.5 text-sm font-medium transition-colors hover:bg-raised disabled:opacity-40 lg:min-h-9;
+  }
+  .btn-primary {
+    @apply border-transparent bg-k8s font-semibold text-ink hover:bg-k8s hover:opacity-90;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1rem;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-k8s);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-k8s) 40%, transparent);
+}
+
+@keyframes k8s-fresh {
+  from {
+    background-color: color-mix(in srgb, var(--color-ok) 40%, transparent);
+  }
+}
+
+@keyframes k8s-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 50;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.375rem;
+  background: var(--color-panel);
+}
+
+/* Theme switch: the old page stays put and the new one is revealed by a growing circle (see ThemeToggle). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Fallback for browsers without View Transitions: a short fade of the colors. */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition:
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
