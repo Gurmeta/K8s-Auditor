@@ -34,7 +34,7 @@ Where a standard applies, the finding links the rule to the Pod Security Standar
 
 ## Limits
 
-This is a static check of the manifest you paste. It does not see the cluster, admission controllers, NetworkPolicies, RBAC or anything defined in another file. YAML anchors and merge keys (`&a`, `*a`, `<<`) are not expanded yet, so values that come from an alias are not seen by the rules, and Auto-Fix skips those spots. For CI use on a real repository, reach for [kube-linter](https://github.com/stackrox/kube-linter), [Kubescape](https://github.com/kubescape/kubescape) or [Polaris](https://github.com/FairwindsOps/polaris). Their check lists were a reference when choosing which rules to include.
+This is a static check of the manifest you paste. It does not see the cluster, admission controllers, NetworkPolicies, RBAC or anything defined in another file. YAML anchors, aliases and merge keys (`&a`, `*a`, `<<`) are expanded before the rules run, so a value that comes from an alias is checked, and its finding points at the anchor line. Auto-Fix works on the original text and leaves your anchors in place, so it skips spots that only exist through an alias. Input over 300 KB is not checked, and a file whose aliases expand to an unreasonable size is rejected. For CI use on a real repository, reach for [kube-linter](https://github.com/stackrox/kube-linter), [Kubescape](https://github.com/kubescape/kubescape) or [Polaris](https://github.com/FairwindsOps/polaris). Their check lists were a reference when choosing which rules to include.
 
 ## Run it locally
 
