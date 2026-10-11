@@ -1,62 +1,43 @@
 import { yaml } from '@codemirror/lang-yaml'
-import { MergeView, unifiedMergeView } from '@codemirror/merge'
+import { unifiedMergeView } from '@codemirror/merge'
 import { EditorState } from '@codemirror/state'
 import { EditorView, lineNumbers } from '@codemirror/view'
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useEffect, useRef } from 'react'
 import { cmTheme } from './cmTheme'
-
-const WIDE = '(min-width: 1024px)'
+import { hangingIndent } from './hangingIndent'
 
 const readOnly = [
   yaml(),
   cmTheme,
   lineNumbers(),
   EditorView.lineWrapping,
+  hangingIndent,
   EditorView.editable.of(false),
   EditorState.readOnly.of(true),
 ]
 
-function useIsWide() {
-  return useSyncExternalStore(
-    (notify) => {
-      const query = window.matchMedia(WIDE)
-      query.addEventListener('change', notify)
-      return () => query.removeEventListener('change', notify)
-    },
-    () => window.matchMedia(WIDE).matches,
-  )
-}
-
+// One column on every screen: two side by side panes get ~35 characters each next to the results list,
+// which wraps most YAML lines and the review comments the fixer adds.
 export function DiffView({ original, modified, label }: { original: string; modified: string; label: string }) {
   const host = useRef<HTMLDivElement>(null)
-  const wide = useIsWide()
 
   useEffect(() => {
-    const parent = host.current!
-    const collapseUnchanged = { margin: 2, minSize: 4 }
-
-    if (wide) {
-      const view = new MergeView({
-        a: { doc: original, extensions: readOnly },
-        b: { doc: modified, extensions: readOnly },
-        parent,
-        highlightChanges: true,
-        gutter: true,
-        collapseUnchanged,
-      })
-      return () => view.destroy()
-    }
-
     const view = new EditorView({
-      parent,
+      parent: host.current!,
       doc: modified,
       extensions: [
         ...readOnly,
-        unifiedMergeView({ original, mergeControls: false, highlightChanges: true, gutter: true, collapseUnchanged }),
+        unifiedMergeView({
+          original,
+          mergeControls: false,
+          highlightChanges: true,
+          gutter: true,
+          collapseUnchanged: { margin: 2, minSize: 4 },
+        }),
       ],
     })
     return () => view.destroy()
-  }, [original, modified, wide])
+  }, [original, modified])
 
   return <div ref={host} className="h-full overflow-auto" role="region" aria-label={label} />
 }

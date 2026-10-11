@@ -47,7 +47,7 @@ K8s Auditor shortens that loop. Open the page, paste YAML, and see what is wrong
 - **22 rules** across resources, health probes, images, privileges, host access and hygiene, each mapped to the Pod Security Standards, the CIS Kubernetes Benchmark or the NSA/CISA hardening guide where one applies.
 - **A 0 to 100 score** with a grade. Severity is weighted, repeats of the same rule cost less each time, and any critical finding caps the score.
 - **Findings under the line they belong to.** Open one to see the suggested change as a diff and apply it on its own.
-- **Auto-Fix with a review step.** See every change as a side by side diff, untick the ones you do not want, then apply, copy or download the result.
+- **Auto-Fix with a review step.** See every change as a diff, untick the ones you do not want, then apply, copy or download the result.
 - **Comments and key order survive.** Fixes edit the parsed YAML document, not the text.
 - **Anchors, aliases and merge keys** (`&a`, `*a`, `<<`) are expanded before the rules run, so values that come from an alias are checked.
 - **English and Bulgarian**, light and dark theme (light by default), keyboard friendly.
@@ -115,7 +115,7 @@ Severity drives the score: critical costs 15 points, warning 5, info 1. Repeats 
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/annotation.png" alt="An expanded finding with a suggested fix"><br><sub>A finding opened under its line, with the fix to apply on its own.</sub></td>
-    <td width="50%"><img src="docs/screenshots/autofix-review.png" alt="Auto-Fix review with a side by side diff and selectable fixes"><br><sub>Auto-Fix review: a diff, a projected score and a switch per fix.</sub></td>
+    <td width="50%"><img src="docs/screenshots/autofix-review.png" alt="Auto-Fix review with a diff and selectable fixes"><br><sub>Auto-Fix review: a diff, a projected score and a switch per fix.</sub></td>
   </tr>
 </table>
 
@@ -138,7 +138,7 @@ The interface also comes in Bulgarian:
 | UI | React 19 | Small component tree, no state library needed |
 | Build | Vite 8 | Fast dev server, static output for GitHub Pages |
 | Styling | Tailwind CSS 4 with CSS variable tokens | One token set drives the light and dark themes |
-| Editor | CodeMirror 6, `@codemirror/merge` | Inline widgets under lines, side by side diffs |
+| Editor | CodeMirror 6, `@codemirror/merge` | Inline widgets under lines, unified diffs |
 | YAML | [`yaml`](https://github.com/eemeli/yaml) 2.x | Keeps comments, key order and source positions. `js-yaml` drops comments |
 | Tests | Vitest 5 | Fast, runs against the pure core without a DOM |
 | Lint | oxlint | Fast, with React hooks and TypeScript rules |
