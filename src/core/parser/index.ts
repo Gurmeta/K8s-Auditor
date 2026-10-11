@@ -1,6 +1,7 @@
 import { isMap, LineCounter, parseAllDocuments, type Document } from 'yaml'
 import { getPodSpecPath, listContainers } from '../podSpec'
 import type { ResourceCtx } from '../types'
+import { ExpansionError, expandAliases } from './expand'
 
 export interface ParseError {
   message: string
@@ -15,12 +16,20 @@ export interface ParseResult {
   errors: ParseError[]
 }
 
+export interface ParseOptions {
+  /**
+   * Resolve aliases and merge keys so rules see the values they point to. The returned documents
+   * are then only good for reading: use the default for anything that gets serialized back.
+   */
+  expand?: boolean
+}
+
 /** Parses a (possibly multi-document) YAML string into resource contexts. Never throws. */
-export function parseManifests(text: string): ParseResult {
+export function parseManifests(text: string, { expand = false }: ParseOptions = {}): ParseResult {
   const lineCounter = new LineCounter()
   const resources: ResourceCtx[] = []
   const errors: ParseError[] = []
-  const documents = parseAllDocuments(text, { lineCounter }) as Document[]
+  const documents = parseAllDocuments(text, { lineCounter, merge: expand }) as Document[]
 
   for (const doc of documents) {
     for (const err of doc.errors) {
@@ -29,6 +38,17 @@ export function parseManifests(text: string): ParseResult {
     }
     // Skip broken, empty and non-mapping documents (e.g. a lone comment between `---`).
     if (doc.errors.length > 0 || !isMap(doc.contents)) continue
+
+    if (expand) {
+      try {
+        expandAliases(doc)
+      } catch (error) {
+        if (!(error instanceof ExpansionError)) throw error
+        const pos = lineCounter.linePos(doc.range?.[0] ?? 0)
+        errors.push({ message: error.message, line: pos.line, col: pos.col })
+        continue
+      }
+    }
 
     const kind = doc.getIn(['kind'])
     if (typeof kind !== 'string') continue
