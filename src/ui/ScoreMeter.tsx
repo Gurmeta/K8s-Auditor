@@ -47,7 +47,7 @@ export function ScoreMeter({ score, caption }: Props) {
   return (
     <section aria-label={t('meter.region')} className="border-b border-line px-4 py-5 sm:px-5 lg:border-l">
       <div className="flex items-end justify-between gap-4">
-        <div className="flex items-baseline gap-1" style={{ color }}>
+        <div className="flex items-baseline gap-1 transition-colors duration-300" style={{ color }}>
           <span className="font-mono text-6xl leading-none font-semibold tabular-nums" aria-live="polite" aria-atomic="true">
             <span className="sr-only">{score === null ? t('meter.none') : t('meter.scoreOf', { score })}</span>
             <span aria-hidden="true">{shown ?? '--'}</span>
@@ -55,7 +55,12 @@ export function ScoreMeter({ score, caption }: Props) {
           <span className="font-mono text-lg text-dim" aria-hidden="true">/100</span>
         </div>
         {score !== null && (
-          <div className="font-mono text-3xl leading-none font-semibold" style={{ color }} aria-label={t('meter.grade', { grade: gradeOf(score) })}>
+          <div
+            key={gradeOf(score)}
+            className="grade-swap font-mono text-3xl leading-none font-semibold"
+            style={{ color }}
+            aria-label={t('meter.grade', { grade: gradeOf(score) })}
+          >
             {gradeOf(score)}
           </div>
         )}

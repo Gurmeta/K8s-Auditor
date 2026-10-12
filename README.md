@@ -50,7 +50,7 @@ K8s Auditor shortens that loop. Open the page, paste YAML, and see what is wrong
 - **Auto-Fix with a review step.** See every change as a diff, untick the ones you do not want, then apply, copy or download the result.
 - **Comments and key order survive.** Fixes edit the parsed YAML document, not the text.
 - **Anchors, aliases and merge keys** (`&a`, `*a`, `<<`) are expanded before the rules run, so values that come from an alias are checked.
-- **English and Bulgarian**, light and dark theme (light by default), keyboard friendly.
+- **English and Bulgarian**, light and dark theme (light by default), keyboard friendly. Motion is subtle and switches off with `prefers-reduced-motion`.
 - **Zero runtime network access.** No backend, no analytics, no external fonts or scripts.
 
 ## How it works
@@ -134,7 +134,7 @@ The interface also comes in Bulgarian:
 
 | Layer | Choice | Why |
 | --- | --- | --- |
-| Language | TypeScript 6, strict mode | The rule and fixer contracts are typed end to end |
+| Language | TypeScript 7, strict mode | The rule and fixer contracts are typed end to end |
 | UI | React 19 | Small component tree, no state library needed |
 | Build | Vite 8 | Fast dev server, static output for GitHub Pages |
 | Styling | Tailwind CSS 4 with CSS variable tokens | One token set drives the light and dark themes |

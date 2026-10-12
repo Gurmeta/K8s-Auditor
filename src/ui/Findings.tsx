@@ -58,7 +58,7 @@ export function Findings({ findings, counts, filter, onFilter, onSelect, hidden,
       <ul className="max-h-[70dvh] min-h-0 flex-1 overflow-y-auto lg:max-h-none">
         {visible.map((f, i) => (
           <li key={`${f.ruleId}:${f.resourceIndex}:${f.path.join('.')}:${i}`} className="border-b border-line/70">
-            <button type="button" onClick={() => onSelect(f)} className="block w-full px-4 py-3 text-left hover:bg-raised/60 sm:px-5">
+            <button type="button" onClick={() => onSelect(f)} className="block w-full px-4 py-3 text-left transition-colors duration-150 hover:bg-raised/60 active:bg-raised focus-visible:outline-offset-[-2px] sm:px-5">
               <span className="flex items-center justify-between gap-3">
                 <SeverityBadge severity={f.severity} />
                 <span className="font-mono text-xs text-dim">{f.ruleId}</span>

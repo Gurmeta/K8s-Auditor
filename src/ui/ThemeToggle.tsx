@@ -75,7 +75,7 @@ export function ThemeToggle() {
       aria-checked={dark}
       aria-label={t(dark ? 'theme.toLight' : 'theme.toDark')}
       onClick={toggle}
-      className="relative h-8 w-16 shrink-0 rounded-full border border-line bg-panel"
+      className="relative h-8 w-16 shrink-0 rounded-full border border-line bg-panel transition-[border-color,scale] duration-150 ease-out before:absolute before:-inset-1 before:content-[''] hover:border-dim active:scale-95"
     >
       <span
         aria-hidden="true"
