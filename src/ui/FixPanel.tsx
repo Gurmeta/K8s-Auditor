@@ -57,7 +57,7 @@ export function FixPanel({ allFixes, excluded, onToggle, output, onApply, onBack
           const description = [...new Set(fixes.map((f) => fixText(lang, f)))].join(', ')
           return (
             <li key={id} className="border-b border-line/70">
-              <label className="flex cursor-pointer items-start gap-3 px-4 py-3 hover:bg-raised/60 sm:px-5">
+              <label className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors duration-150 hover:bg-raised/60 active:bg-raised sm:px-5">
                 <input type="checkbox" checked={!off} onChange={() => onToggle(id)} className="mt-1 size-4 accent-[var(--color-k8s)]" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-3">

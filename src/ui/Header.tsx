@@ -6,7 +6,7 @@ import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   const { t } = useI18n()
-  const link = 'text-sm text-dim transition-colors hover:text-text'
+  const link = 'py-2 text-sm text-dim transition-colors hover:text-text active:text-k8s'
 
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center gap-5 px-4 py-3.5 sm:px-5">

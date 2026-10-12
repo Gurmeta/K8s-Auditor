@@ -50,12 +50,25 @@
   --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
 }
 
+@layer base {
+  button:not(:disabled),
+  [role='switch'],
+  summary,
+  a[href] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
 @layer components {
   .btn {
-    @apply inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-panel px-3.5 text-sm font-medium transition-colors hover:bg-raised disabled:opacity-40 lg:min-h-9;
+    @apply inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-panel px-3.5 text-sm font-medium transition-[background-color,border-color,color,scale] duration-150 ease-out hover:bg-raised active:scale-[0.97] active:bg-[color-mix(in_srgb,var(--color-raised),var(--color-line)_60%)] disabled:opacity-40 disabled:active:scale-100 lg:min-h-9;
   }
   .btn-primary {
-    @apply border-transparent bg-k8s font-semibold text-ink hover:bg-k8s hover:opacity-90;
+    @apply border-transparent bg-k8s font-semibold text-ink hover:bg-[color-mix(in_srgb,var(--color-k8s),var(--color-text)_14%)] active:bg-[color-mix(in_srgb,var(--color-k8s),var(--color-text)_24%)];
   }
 }
 
@@ -91,6 +104,139 @@ body {
   from {
     opacity: 0;
     transform: translateY(-4px);
+  }
+}
+
+@keyframes k8s-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes k8s-swap {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* One entrance sequence for the hero; --i is the position in the sequence. */
+.rise {
+  animation: k8s-rise 420ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+.grade-swap {
+  animation: k8s-swap 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Ghost manifest: --cycle is one scan, --rows the line count, --d the moment the scan reaches a flagged line. */
+.ghost {
+  --lh: 1.5rem;
+  position: relative;
+  counter-reset: ghost;
+  color: color-mix(in srgb, var(--color-dim) 50%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: var(--lh);
+  pointer-events: none;
+  user-select: none;
+}
+
+.ghost-line {
+  position: relative;
+  display: flex;
+  height: var(--lh);
+  white-space: pre;
+}
+
+.ghost-line::before {
+  counter-increment: ghost;
+  content: counter(ghost);
+  width: 2ch;
+  margin-right: 1.25rem;
+  text-align: right;
+  opacity: 0.6;
+}
+
+.ghost-mark {
+  position: absolute;
+  inset: 0 0 0 -0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+  background: color-mix(in srgb, var(--sev) 9%, transparent);
+  box-shadow: inset 3px 0 0 var(--sev);
+  color: var(--sev);
+  font-size: 0.6875rem;
+  opacity: 0;
+  animation: ghost-hit var(--cycle) var(--d) 3;
+}
+
+.ghost-scan {
+  position: absolute;
+  inset: 0 0 auto -0.5rem;
+  height: 1px;
+  background: var(--color-k8s);
+  opacity: 0;
+  animation: ghost-scan var(--cycle) linear 3;
+}
+
+.ghost[data-idle] .ghost-mark,
+.ghost[data-idle] .ghost-scan {
+  animation-play-state: paused;
+}
+
+/* The line travels between 4% and 76% of the cycle; GhostManifest derives each flagged line's --d from the same numbers. */
+@keyframes ghost-scan {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  4% {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+  76% {
+    opacity: 0.8;
+    transform: translateY(calc(var(--rows) * var(--lh)));
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--rows) * var(--lh)));
+  }
+}
+
+@keyframes ghost-hit {
+  0% {
+    opacity: 0;
+  }
+  2%,
+  20% {
+    opacity: 1;
+  }
+  28%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .grade-swap {
+    animation: none;
+  }
+
+  .ghost-scan {
+    display: none;
+  }
+
+  .ghost-mark {
+    animation: none;
+    opacity: 1;
   }
 }
 
