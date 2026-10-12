@@ -18,7 +18,7 @@ interface Props {
 
 export function FixPanel({ allFixes, excluded, onToggle, output, onApply, onBack }: Props) {
   const { t, tn, lang } = useI18n()
-  const [copied, setCopied] = useState(false)
+  const [copyState, setCopyState] = useState<'idle' | 'done' | 'failed'>('idle')
 
   const groups = useMemo(() => {
     const byRule = new Map<string, AppliedFix[]>()
@@ -29,20 +29,23 @@ export function FixPanel({ allFixes, excluded, onToggle, output, onApply, onBack
   const selected = groups.filter(([id]) => !excluded.has(id)).reduce((n, [, fixes]) => n + fixes.length, 0)
 
   const copy = async () => {
+    let next: 'done' | 'failed' = 'done'
     try {
       await navigator.clipboard.writeText(output)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1800)
     } catch {
-      // clipboard blocked: the Download button still works
+      // clipboard blocked: say so, the Download button still works
+      next = 'failed'
     }
+    setCopyState(next)
+    setTimeout(() => setCopyState('idle'), 1800)
   }
 
   const download = () => {
     const url = URL.createObjectURL(new Blob([output], { type: 'text/yaml' }))
     const a = Object.assign(document.createElement('a'), { href: url, download: 'fixed-manifest.yaml' })
     a.click()
-    URL.revokeObjectURL(url)
+    // Firefox and Safari can cancel the download if the URL is revoked in the same tick.
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   return (
@@ -82,7 +85,7 @@ export function FixPanel({ allFixes, excluded, onToggle, output, onApply, onBack
         </button>
         <div className="grid grid-cols-3 gap-2">
           <button type="button" onClick={copy} disabled={selected === 0} className="btn">
-            {copied ? t('fix.copied') : t('fix.copy')}
+            {t(copyState === 'done' ? 'fix.copied' : copyState === 'failed' ? 'fix.copyFailed' : 'fix.copy')}
           </button>
           <button type="button" onClick={download} disabled={selected === 0} className="btn">
             {t('fix.download')}

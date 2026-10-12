@@ -72,6 +72,7 @@ export const en = {
   'fix.apply.other': 'Apply {n} fixes to editor',
   'fix.copy': 'Copy YAML',
   'fix.copied': 'Copied',
+  'fix.copyFailed': 'Copy blocked',
   'fix.download': 'Download',
   'fix.back': 'Back',
   'fix.safe': 'safe',

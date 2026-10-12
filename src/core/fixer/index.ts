@@ -1,4 +1,4 @@
-import { runRule } from '../engine'
+import { runRule, type ErrorReporter } from '../engine'
 import { checkInputSize } from '../limits'
 import { parseManifests, type ParseError } from '../parser'
 import { rules as allRules } from '../rules'
@@ -19,6 +19,7 @@ export interface FixOptions {
   /** Fix only the findings this accepts, e.g. a single one picked in the editor. */
   only?: (finding: Finding) => boolean
   rules?: Rule[]
+  onError?: ErrorReporter
 }
 
 export interface FixResult {
@@ -36,7 +37,7 @@ export const fixableRuleIds = (): string[] => Object.keys(FIXES)
  */
 export function autoFix(
   text: string,
-  { include = () => true, only = () => true, rules = allRules }: FixOptions = {},
+  { include = () => true, only = () => true, rules = allRules, onError }: FixOptions = {},
 ): FixResult {
   if (checkInputSize(text)) return { output: text, fixes: [], errors: [] }
 
@@ -47,7 +48,7 @@ export function autoFix(
   for (const rule of rules) {
     const fix = FIXES[rule.id]
     if (!fix || !include(rule.id)) continue
-    for (const finding of runRule(rule, resources)) {
+    for (const finding of runRule(rule, resources, onError)) {
       if (!only(finding)) continue
       const resource = resources[finding.resourceIndex!]
       let outcome
@@ -55,7 +56,7 @@ export function autoFix(
         outcome = fix(resource, finding)
       } catch (error) {
         // e.g. a path that goes through a YAML alias: leave that spot for a manual fix.
-        console.error(`Fix for ${rule.id} failed on ${finding.resource.kind}/${finding.resource.name}`, error)
+        onError?.(`Fix for ${rule.id} failed on ${finding.resource.kind}/${finding.resource.name}`, error)
         continue
       }
       if (outcome) {
