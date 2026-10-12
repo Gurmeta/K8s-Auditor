@@ -1,21 +1,23 @@
 import { EditorView } from '@codemirror/view'
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { diffLines, type DiffOp } from '../core/diff'
-import { findingKey, lint } from '../core/engine'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { diffLines } from '../core/diff'
+import { findingKey } from '../core/engine'
 import { autoFix } from '../core/fixer'
 import { rules } from '../core/rules'
-import { computeScore } from '../core/scoring'
-import type { Finding, FixSafety, Severity } from '../core/types'
+import type { Finding, Severity } from '../core/types'
 import { EXAMPLES } from '../examples'
 import { useI18n } from '../i18n/context'
 import { findingText } from '../i18n/localize'
 import type { AnnotationHandlers } from './annotations'
-import { ANNOTATION_LIMIT, buildAnnotationItems, fixSpot } from './annotationItems'
-import { DiffView } from './DiffView'
+import { ANNOTATION_LIMIT, buildAnnotationItems } from './annotationItems'
 import { Editor } from './Editor'
 import { Findings } from './Findings'
-import { FixPanel } from './FixPanel'
 import { ScoreMeter } from './ScoreMeter'
+import { reportCoreError, useAnalysis } from './useAnalysis'
+
+// Only needed in the review step, so the diff editor and the fix list load on first use.
+const DiffView = lazy(() => import('./DiffView').then((m) => ({ default: m.DiffView })))
+const FixPanel = lazy(() => import('./FixPanel').then((m) => ({ default: m.FixPanel })))
 
 type Mode = 'edit' | 'review'
 
@@ -38,37 +40,12 @@ export function Auditor() {
 
   useEffect(() => () => window.clearTimeout(freshTimer.current), [])
 
-  const deferred = useDeferredValue(text)
-  const result = useMemo(() => lint(deferred), [deferred])
-  const score = useMemo(() => computeScore(result), [result])
-  const allFixes = useMemo(() => autoFix(deferred), [deferred])
-
-  const preview = useMemo(
-    () => (mode === 'review' ? autoFix(deferred, { include: (id) => !excluded.has(id) }) : null),
-    [mode, deferred, excluded],
-  )
-  const afterScore = useMemo(() => (preview ? computeScore(lint(preview.output)) : null), [preview])
-
-  const fixable = useMemo(() => {
-    const spots = new Map<string, FixSafety>()
-    for (const fix of allFixes.fixes) {
-      const spot = fixSpot(fix)
-      if (spots.get(spot) !== 'review') spots.set(spot, fix.safety)
-    }
-    return spots
-  }, [allFixes])
-
-  // Each suggestion costs one run of the fixer, so only the open annotations get one.
-  const suggestions = useMemo(() => {
-    const diffs = new Map<string, DiffOp[]>()
-    for (const f of result.findings) {
-      const key = findingKey(f)
-      if (!expanded.has(key) || !fixable.has(fixSpot(f))) continue
-      const fixed = autoFix(deferred, { only: (x) => findingKey(x) === key })
-      if (fixed.fixes.length > 0) diffs.set(key, diffLines(deferred, fixed.output))
-    }
-    return diffs
-  }, [deferred, expanded, result.findings, fixable])
+  const { result, score, allFixes, preview, afterScore, fixable, suggestions } = useAnalysis({
+    text,
+    reviewing: mode === 'review',
+    excluded,
+    expanded,
+  })
 
   const labels = useMemo(
     () => ({
@@ -135,7 +112,7 @@ export function Auditor() {
     })
 
   const applyOne = (key: string) => {
-    const fixed = autoFix(text, { only: (f) => findingKey(f) === key })
+    const fixed = autoFix(text, { only: (f) => findingKey(f) === key, onError: reportCoreError })
     if (fixed.fixes.length === 0) return
     const changed = diffLines(text, fixed.output).flatMap((op) => (op.type === 'add' && op.line ? [op.line] : []))
     setText(fixed.output)
@@ -228,24 +205,28 @@ export function Auditor() {
                 placeholder={t('tool.placeholder')}
               />
             ) : (
-              <DiffView original={text} modified={preview?.output ?? text} label={t('tool.diffLabel')} />
+              <Suspense fallback={null}>
+                <DiffView original={text} modified={preview?.output ?? text} label={t('tool.diffLabel')} />
+              </Suspense>
             )}
           </div>
         </section>
 
         <aside className="order-3 flex min-h-0 flex-col lg:order-none lg:col-start-2 lg:row-start-2" aria-label={t('tool.results')}>
           {mode === 'review' && preview ? (
-            <FixPanel
-              allFixes={allFixes.fixes}
-              excluded={excluded}
-              onToggle={toggleRule}
-              output={preview.output}
-              onApply={() => {
-                load(preview.output)
-                setExcluded(new Set())
-              }}
-              onBack={() => setMode('edit')}
-            />
+            <Suspense fallback={null}>
+              <FixPanel
+                allFixes={allFixes.fixes}
+                excluded={excluded}
+                onToggle={toggleRule}
+                output={preview.output}
+                onApply={() => {
+                  load(preview.output)
+                  setExcluded(new Set())
+                }}
+                onBack={() => setMode('edit')}
+              />
+            </Suspense>
           ) : (
             <>
               {result.tooLarge && (

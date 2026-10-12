@@ -74,6 +74,7 @@ export const bg: Record<keyof typeof en, string> = {
   'fix.apply.other': 'Приложи {n} поправки в редактора',
   'fix.copy': 'Копирай YAML',
   'fix.copied': 'Копирано',
+  'fix.copyFailed': 'Копирането е блокирано',
   'fix.download': 'Свали',
   'fix.back': 'Назад',
   'fix.safe': 'safe',

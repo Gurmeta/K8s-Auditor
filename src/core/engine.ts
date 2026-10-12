@@ -22,27 +22,30 @@ export interface LintResult {
 /** Identifies one finding across runs: the same rule at the same spot in the same resource. */
 export const findingKey = (f: Finding): string => `${f.ruleId}|${f.resourceIndex}|${f.path.join('.')}`
 
-export function runRule(rule: Rule, resources: ResourceCtx[]): Finding[] {
+/** Receives problems the core recovers from, so it stays free of console and DOM access. */
+export type ErrorReporter = (message: string, error: unknown) => void
+
+export function runRule(rule: Rule, resources: ResourceCtx[], onError?: ErrorReporter): Finding[] {
   return resources.flatMap((resource, resourceIndex) => {
     if (!rule.appliesTo.includes(resource.kind)) return []
     try {
       return rule.check(resource).map((f) => ({ ...f, resourceIndex }))
     } catch (error) {
       // One rule choking on an odd manifest must not take the other rules down with it.
-      console.error(`Rule ${rule.id} failed on ${resource.kind}/${resource.name}`, error)
+      onError?.(`Rule ${rule.id} failed on ${resource.kind}/${resource.name}`, error)
       return []
     }
   })
 }
 
-export function lint(text: string, rules: Rule[] = allRules): LintResult {
+export function lint(text: string, rules: Rule[] = allRules, onError?: ErrorReporter): LintResult {
   const tooLarge = checkInputSize(text)
   if (tooLarge) return { findings: [], errors: [], resources: [], tooLarge }
 
   const { resources, errors } = parseManifests(text, { expand: true })
   return {
     tooLarge: null,
-    findings: rules.flatMap((rule) => runRule(rule, resources)),
+    findings: rules.flatMap((rule) => runRule(rule, resources, onError)),
     errors,
     resources: resources.map((r, index) => ({
       index,
